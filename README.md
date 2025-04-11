@@ -11,6 +11,6 @@ A Python-based collection of password security utilities.
 
 ## Quick Start
 ```bash
-git clone https://github.com/kathxoxo0117/Password-Cybersecurity.git
-cd Password-Cybersecurity
+
+cd AI Driven Project
 python password_generator.py
