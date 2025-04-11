@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Password Manager</title>
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Password Manager</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    
+    <form id="passwordForm" method="POST" action="{{ url_for('save') }}">
+        <label for="website">Website:</label>
+        <input type="text" id="website" name="website" required autofocus>
+        
+        <label for="email">Email/Username:</label>
+        <input type="email" id="email" name="email" value="" required>
+        
+        <label for="password">Password:</label>
+        <input type="text" id="password" name="password" required>
+        <button type="button" id="generatePassword">Generate Password</button>
+        <div id="strengthResult"></div>
+        
+        <br>
+        <button type="submit">Add</button>
+    </form>
+
+    <script>
+        document.getElementById('generatePassword').addEventListener('click', function() {
+            const website = document.getElementById('website').value;
+            const email = document.getElementById('email').value;
+            if (website && email) {
+                fetch('{{ url_for("generate_gpt") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ website: website, email: email })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('password').value = data.password;
+                    document.getElementById('password').dispatchEvent(new Event('input'));
+                });
+            } else {
+                fetch('{{ url_for("generate") }}')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('password').value = data.password;
+                    document.getElementById('password').dispatchEvent(new Event('input'));
+                });
+            }
+        });
+
+        document.getElementById('password').addEventListener('input', function() {
+            let password = this.value;
+            fetch('{{ url_for("strength_check") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({password: password})
+            })
+            .then(response => response.json())
+            .then(data => {
+                let strengthText = document.getElementById('strengthResult');
+                strengthText.innerText = "Password Strength: " + data.strength;
+
+                if (data.strength === "Weak") {
+                    strengthText.style.color = "red";
+                } else if (data.strength === "Moderate") {
+                    strengthText.style.color = "yellow";
+                } else if (data.strength === "Strong") {
+                    strengthText.style.color = "green";
+                }
+            });
+        });
+
+        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+            let website = document.getElementById('website').value;
+            let email = document.getElementById('email').value;
+            let password = document.getElementById('password').value;
+            if (website === '' || password === '') {
+                alert("Please make sure you haven't left any fields empty.");
+                e.preventDefault();
+            } else {
+                let confirmSave = confirm(`These are the details entered:\nEmail: ${email}\nPassword: ${password}\nIs it ok to save?`);
+                if (!confirmSave) {
+                    e.preventDefault();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
