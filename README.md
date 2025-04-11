@@ -11,6 +11,6 @@ A Python-based collection of password security utilities.
 
 ## Quick Start
 ```bash
-
+cd https://github.com/SanojYadav17/AI-Driven-Project
 cd AI Driven Project
 python password_generator.py
